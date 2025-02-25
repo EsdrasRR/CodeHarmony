@@ -50,9 +50,26 @@ namespace CodeHarmony.App
             {
 				var service = new AzureRepoService(organization, personalAccessToken);
 				var repositories = await service.GetRepositoriesAsync();
+
+				var groupedRepositories = repositories
+					.GroupBy(repo => ExtractNamespaceFromUrl(repo.RemoteUrl))
+					.ToDictionary(g => g.Key, g => g.ToList());
+
+				// Display grouped repositories (for demonstration purposes)
+				foreach (var group in groupedRepositories)
+				{
+					MessageBox.Show($"Namespace: {group.Key}\nRepositories: {string.Join(", ", group.Value.Select(r => r.Name))}");
+				}
 			}
 		}
 
-        private System.Windows.Forms.Button mockButton;
+		private string ExtractNamespaceFromUrl(string url)
+		{
+			// Example URL: https://terminal-cp@dev.azure.com/terminal-cp/Consulta%20Geral/_git/Aduaneiro.Cct
+			var parts = url.Split('/');
+			return parts.Length > 4 ? parts[4] : string.Empty;
+		}
+
+		private System.Windows.Forms.Button mockButton;
     }
 }
