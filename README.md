@@ -17,4 +17,4 @@
 - **Ease of Use**: Intuitive interface and developer-focused features.
 - **Efficient Collaboration**: Enhance team workflows with integration and automation tools.
 
-CodeHarmony is the ideal solution for teams looking to harmonize their development process, bringing order and efficiency to projects distributed across multiple repositories. 🚀
+CodeHarmony is the ideal solution for teams looking to harmonize their development process, bringing order and efficiency to projects distributed across multiple repositories.
