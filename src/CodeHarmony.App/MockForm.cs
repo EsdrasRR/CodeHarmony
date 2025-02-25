@@ -65,7 +65,6 @@ namespace CodeHarmony.App
 
 		private string ExtractNamespaceFromUrl(string url)
 		{
-			// Example URL: https://terminal-cp@dev.azure.com/terminal-cp/Consulta%20Geral/_git/Aduaneiro.Cct
 			var parts = url.Split('/');
 			return parts.Length > 4 ? parts[4] : string.Empty;
 		}
