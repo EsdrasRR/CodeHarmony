@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
+using System.Net;
 
 namespace CodeHarmony.App
 {
@@ -42,7 +44,8 @@ namespace CodeHarmony.App
 
         private async void MockButton_Click(object sender, EventArgs e)
         {
-			// Mock parameters
+			string basePath = @"C:\MyRepo\CodeHarmonyRepos";
+
 			string? organization = _configuration["Azure:Organization"];
 			string? personalAccessToken = _configuration["Azure:PersonalAccessToken"];
 
@@ -55,10 +58,58 @@ namespace CodeHarmony.App
 					.GroupBy(repo => ExtractNamespaceFromUrl(repo.RemoteUrl))
 					.ToDictionary(g => g.Key, g => g.ToList());
 
-				// Display grouped repositories (for demonstration purposes)
 				foreach (var group in groupedRepositories)
 				{
-					MessageBox.Show($"Namespace: {group.Key}\nRepositories: {string.Join(", ", group.Value.Select(r => r.Name))}");
+					string groupFolderPath = Path.Combine(basePath, group.Key);
+					Directory.CreateDirectory(groupFolderPath);
+
+					foreach (var repo in group.Value)
+					{
+						string repoPath = Path.Combine(groupFolderPath, repo.Name);
+
+						if (!Directory.Exists(repoPath))
+						{
+							CloneRepository(repo.RemoteUrl, repoPath);
+						}
+					}
+				}
+
+				MessageBox.Show("Repositories cloned successfully.");
+
+			}
+			else
+            {
+				MessageBox.Show($"Organization or Personal Access Token invalid");
+			}
+		}
+
+		private void CloneRepository(string repoUrl, string repoPath)
+		{
+			// Ensure the repoUrl and repoPath are correctly formatted
+			repoUrl = repoUrl.Trim();
+			repoPath = repoPath.Trim();
+
+			var processInfo = new ProcessStartInfo("git", $"clone \"{repoUrl}\" \"{repoPath}\"")
+			{
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				UseShellExecute = false,
+				CreateNoWindow = false
+			};
+
+			using (var process = new Process())
+			{
+				process.StartInfo = processInfo;
+				process.Start();
+
+				string output = process.StandardOutput.ReadToEnd();
+				string error = process.StandardError.ReadToEnd();
+
+				process.WaitForExit();
+
+				if (process.ExitCode != 0)
+				{
+					MessageBox.Show($"Error cloning repository: {error}");
 				}
 			}
 		}
@@ -66,7 +117,8 @@ namespace CodeHarmony.App
 		private string ExtractNamespaceFromUrl(string url)
 		{
 			var parts = url.Split('/');
-			return parts.Length > 4 ? parts[4] : string.Empty;
+			string namespacePart = parts.Length > 4 ? parts[4] : string.Empty;
+			return WebUtility.UrlDecode(namespacePart);
 		}
 
 		private System.Windows.Forms.Button mockButton;
